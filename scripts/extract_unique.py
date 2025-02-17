@@ -1,23 +1,43 @@
 import pandas as pd
+import psycopg2
 
-# Load the Excel file
+# 1️⃣ Load the Excel file
 excel_file = '../abha_2022q1_2023q1_q2_q3.xlsx'
+df = pd.read_excel(excel_file)
 
-# Load all sheets
-xls = pd.ExcelFile(excel_file)
+# 2️⃣ Connect to Supabase Database
+conn = psycopg2.connect(
+    host="db.your-supabase-url.supabase.co",
+    database="postgres",
+    user="postgres",
+    password="your-supabase-password"
+)
+cursor = conn.cursor()
 
-# Show all sheet names
-print("Sheet Names:", xls.sheet_names)
+# 3️⃣ Insert Unique Values into Property_Classifications
+if 'classification_name' in df.columns:
+    unique_classifications = df['classification_name'].dropna().unique()
+    for value in unique_classifications:
+        cursor.execute("""
+            INSERT INTO Property_Classifications (classification_name)
+            VALUES (%s)
+            ON CONFLICT (classification_name) DO NOTHING;
+        """, (value,))
+    print(f"✅ Inserted {len(unique_classifications)} Property Classifications")
 
-# Load the first sheet (you can change the sheet name or index)
-df = pd.read_excel(xls, sheet_name=0)
+# 4️⃣ Insert Unique Values into Property_Types
+if 'property_type_name' in df.columns:
+    unique_types = df['property_type_name'].dropna().unique()
+    for value in unique_types:
+        cursor.execute("""
+            INSERT INTO Property_Types (property_type_name)
+            VALUES (%s)
+            ON CONFLICT (property_type_name) DO NOTHING;
+        """, (value,))
+    print(f"✅ Inserted {len(unique_types)} Property Types")
 
-# Show first few rows to inspect
-print("\nFirst 5 rows of the dataset:")
-print(df.head())
-
-# Extract unique values for each column
-for column in df.columns:
-    unique_values = df[column].dropna().unique()
-    print(f"\nUnique values in '{column}':")
-    print(unique_values)
+# 5️⃣ Commit and Close
+conn.commit()
+cursor.close()
+conn.close()
+print("✅ Data inserted into Supabase.")
