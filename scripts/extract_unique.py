@@ -1,20 +1,23 @@
 import pandas as pd
 
-# Load Excel file
-df = pd.read_excel('../data/abha_2022.xlsx')
+# Load the Excel file
+excel_file = '../abha_2022q1_2023q1_q2_q3.xlsx'
 
-# Extract unique values
-regions = df['المنطقة'].unique()
-cities = df['المدينة'].unique()
-neighborhoods = df['الحي'].unique()
-classifications = df['تصنيف العقار'].unique()
-property_types = df['نوع العقار'].unique()
+# Load all sheets
+xls = pd.ExcelFile(excel_file)
 
-# Save to CSV
-pd.Series(regions).to_csv('../data/unique_regions.csv', index=False)
-pd.Series(cities).to_csv('../data/unique_cities.csv', index=False)
-pd.Series(neighborhoods).to_csv('../data/unique_neighborhoods.csv', index=False)
-pd.Series(classifications).to_csv('../data/unique_classifications.csv', index=False)
-pd.Series(property_types).to_csv('../data/unique_property_types.csv', index=False)
+# Show all sheet names
+print("Sheet Names:", xls.sheet_names)
 
-print("Unique values extracted successfully!")
+# Load the first sheet (you can change the sheet name or index)
+df = pd.read_excel(xls, sheet_name=0)
+
+# Show first few rows to inspect
+print("\nFirst 5 rows of the dataset:")
+print(df.head())
+
+# Extract unique values for each column
+for column in df.columns:
+    unique_values = df[column].dropna().unique()
+    print(f"\nUnique values in '{column}':")
+    print(unique_values)
